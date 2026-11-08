@@ -275,7 +275,16 @@
     return s.trim().toLocaleLowerCase("tr-TR").replace(/[çğıöşü]/g, h => harf[h]);
   }
   const gorunenAd = (u) => (u.user_metadata && u.user_metadata.gorunen_ad) || u.email.split("@")[0];
-  const bolumu = (u) => u.app_metadata && u.app_metadata.bolum;
+  // Kullanıcının girebildiği bölümler (Supabase app_metadata.bolumler, ör. ["yonetim","uretim"])
+  function bolumleri(u) {
+    const m = u.app_metadata || {};
+    const liste = Array.isArray(m.bolumler) ? m.bolumler : (m.bolum ? [m.bolum] : []);
+    return liste.filter(b => BOLUM_ADI[b]);
+  }
+  // Hangi bölümle girildiği, çıkış yapılana kadar hatırlanır
+  const BOLUM_ANAHTARI = "tumersan_bolum";
+  function aktifBolumOku() { try { return localStorage.getItem(BOLUM_ANAHTARI); } catch { return null; } }
+  function aktifBolumYaz(b) { try { b ? localStorage.setItem(BOLUM_ANAHTARI, b) : localStorage.removeItem(BOLUM_ANAHTARI); } catch {} }
 
   /* ---------- Ekranlar ---------- */
   function girisGoster() {
@@ -298,10 +307,11 @@
     $("#formAdimi").hidden = false;
     $("#kullaniciAdi").focus();
   }
-  function uygulamaGoster(user) {
+  function uygulamaGoster(user, bolum) {
+    aktifBolumYaz(bolum);
     $("#girisEkrani").hidden = true;
     $("#uygulamaEkrani").hidden = false;
-    $("#bolumEtiket").textContent = BOLUM_ADI[bolumu(user)] || "";
+    $("#bolumEtiket").textContent = BOLUM_ADI[bolum];
     $("#kim").textContent = gorunenAd(user);
     $("#merhaba").textContent = "Merhaba, " + gorunenAd(user);
   }
@@ -336,15 +346,15 @@
       const { data, error } = await sb.auth.signInWithPassword({ email: `${ad}@${ALAN_ADI}`, password: sifre });
       if (error) throw error;
       // Kullanıcı seçtiği bölüme kayıtlı mı?
-      const bolum = bolumu(data.user);
-      if (bolum !== seciliBolum) {
+      const izinli = bolumleri(data.user);
+      if (!izinli.includes(seciliBolum)) {
         await sb.auth.signOut();
-        hataGoster(bolum
-          ? `Bu kullanıcı ${BOLUM_ADI[bolum] || bolum} bölümüne kayıtlı. O bölümden giriş yapın.`
+        hataGoster(izinli.length
+          ? `Bu kullanıcı yalnızca ${izinli.map(b => BOLUM_ADI[b]).join(" ve ")} bölümüne girebilir.`
           : "Bu kullanıcıya henüz bölüm atanmamış. Yöneticiye başvurun.");
         return;
       }
-      uygulamaGoster(data.user);
+      uygulamaGoster(data.user, seciliBolum);
     } catch (err) {
       hataGoster(hataCevir(err));
       $("#sifre").value = "";
@@ -355,7 +365,7 @@
     }
   };
 
-  $("#cikis").onclick = async () => { await sb.auth.signOut(); girisGoster(); };
+  $("#cikis").onclick = async () => { aktifBolumYaz(null); await sb.auth.signOut(); girisGoster(); };
 
   // Oturum başka bir sebeple kapanırsa (kullanıcı silindi, süre doldu) giriş ekranına dön
   sb.auth.onAuthStateChange((olay) => {
@@ -373,8 +383,10 @@
       return girisGoster();
     }
     const user = (data && data.user) || session.user;
-    if (!BOLUM_ADI[bolumu(user)]) { await sb.auth.signOut(); return girisGoster(); }
-    uygulamaGoster(user);
+    // Girilen bölüm hâlâ izinli mi? (yetkisi alındıysa oturumu kapat)
+    const bolum = aktifBolumOku();
+    if (!bolumleri(user).includes(bolum)) { aktifBolumYaz(null); await sb.auth.signOut(); return girisGoster(); }
+    uygulamaGoster(user, bolum);
   })();
 </script>
 </body>

@@ -23,13 +23,21 @@ Panel → **SQL Editor** → **New query** → aşağıdakini yapıştırın, k�
 
 ```sql
 update auth.users
-set raw_app_meta_data  = raw_app_meta_data  || '{"bolum": "uretim"}',
+set raw_app_meta_data  = raw_app_meta_data  || '{"bolumler": ["uretim"]}',
     raw_user_meta_data = raw_user_meta_data || '{"gorunen_ad": "Ahmet Yılmaz"}'
 where email = 'ahmet@tumersan.local';
 ```
 
-`bolum` yalnızca `"yonetim"` ya da `"uretim"` olabilir.
+`bolumler` kişinin girebileceği bölümlerin listesidir:
+- Yalnızca Üretim: `["uretim"]`
+- Yalnızca Yönetim: `["yonetim"]`
+- İkisi birden: `["yonetim", "uretim"]`
+
 Bölümü atanmamış kullanıcı giriş yapamaz.
+
+> **Kısa şifre:** Supabase paneli "Add user" ekranında en az 6 karakter ister.
+> Daha kısa bir şifre isterseniz önce 6+ karakterli geçici bir şifreyle oluşturun,
+> sonra 2. maddedeki komutla kısa şifreyi verin.
 
 ## 2. Şifre değiştirme
 
@@ -55,19 +63,18 @@ O kişi uygulamayı bir sonraki açışında giriş ekranına düşer.
 
 ```sql
 select split_part(email, '@', 1)            as kullanici_adi,
-       raw_app_meta_data  ->> 'bolum'        as bolum,
+       raw_app_meta_data  ->  'bolumler'     as bolumler,
        raw_user_meta_data ->> 'gorunen_ad'   as gorunen_ad,
        last_sign_in_at                       as son_giris
 from auth.users
 order by email;
 ```
 
-## Şu anki deneme kullanıcıları
+## Şu anki kullanıcılar
 
-| Kullanıcı adı | Bölüm | Görünen ad |
+| Kullanıcı adı | Girebildiği bölümler | Görünen ad |
 |---|---|---|
-| `muammer` | yonetim | Muammer Tüm |
-| `uretim` | uretim | Üretim |
+| `ym` | Yönetim, Üretim | Muammer Tüm |
+| `uretim` | Üretim | Üretim |
 
-Şifreleri, ilk sürümde dosyada duran deneme şifreleriyle aynıdır.
-Gerçek kullanıma geçmeden önce 2. maddedeki komutla değiştirin.
+Şifreler bu dosyada yazmaz (depo herkese açık).
