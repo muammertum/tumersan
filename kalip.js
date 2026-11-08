@@ -54,14 +54,17 @@
     return data;
   }
 
+  // Tek bildirim alanı: yeni mesaj eskisinin yerine geçer, üst üste binmez
   let bildirimZaman = null;
   function bildir(mesaj, hatali) {
     const b = $("#bildirim");
+    clearTimeout(bildirimZaman);
+    b.hidden = true;
     b.textContent = mesaj;
     b.classList.toggle("hatali", !!hatali);
+    void b.offsetWidth;   // giriş animasyonunu yeniden başlat
     b.hidden = false;
-    clearTimeout(bildirimZaman);
-    bildirimZaman = setTimeout(() => { b.hidden = true; }, hatali ? 6000 : 3200);
+    bildirimZaman = setTimeout(() => { b.hidden = true; }, hatali ? 5000 : 3000);
   }
 
   /* ---------------- Pencere sistemi ---------------- */
@@ -124,7 +127,7 @@
 
   /* ---------------- İşçi karakteri ---------------- */
   const ISCI_SVG = `
-    <svg class="isci-svg" width="16" height="28" viewBox="0 0 16 28" aria-hidden="true">
+    <svg class="isci-svg" width="24" height="42" viewBox="0 0 16 28" aria-hidden="true">
       <rect class="bacak bacak-sol" x="5" y="19.5" width="2.7" height="7.6" rx="1" fill="#2b3240"/>
       <rect class="bacak bacak-sag" x="8.3" y="19.5" width="2.7" height="7.6" rx="1" fill="#2b3240"/>
       <rect x="4.3" y="25.6" width="3.6" height="2.2" rx="1" fill="#15171c"/>
@@ -170,7 +173,7 @@
       const raf = alan.querySelector("#rafKutu").getBoundingClientRect();
       const dis = alan.querySelector("#disKutu").getBoundingClientRect();
       const yanYana = raf.right <= dis.left + 1;
-      const W = 16, H = 28;
+      const W = 24, H = 42;   // işçi boyutu (eskisinin 1,5 katı)
       const ortaY = (r) => (r.top + r.bottom) / 2 + H / 2;
       let P1, P2;
       if (yanYana) {
@@ -194,7 +197,7 @@
 
       const t = (p) => `translate(${p.x - W / 2}px, ${p.y - H}px)`;
       const yon1 = Math.sign(P1.x - P0.x) || 1, yon2 = Math.sign(P2.x - P1.x) || 1, yon3 = Math.sign(P0.x - P2.x) || 1;
-      const sure = 1350;
+      const sure = 2700;   // yürü, al, taşı, bırak, dön (eskisinin 2 katı)
       const a1 = gezen.animate([
         { transform: t(P0), offset: 0 }, { transform: t(P1), offset: 0.24 }, { transform: t(P1), offset: 0.31 },
         { transform: t(P2), offset: 0.72 }, { transform: t(P2), offset: 0.79 }, { transform: t(P0), offset: 1 },
@@ -252,10 +255,10 @@
         </section>
         <div class="isci-katman"></div>
       </div>
-      <div class="alt-cubuk"><button type="button" class="btn ana" id="kExcel">Excel'e aktar</button></div>`;
+      ${yon() ? `<div class="alt-cubuk"><button type="button" class="btn ana" id="kExcel">Excel'e aktar</button></div>` : ""}`;
     $("#kGeri").onclick = () => { location.hash = ""; };
-    $("#kExcel").onclick = (e) => excelAktar(e.currentTarget);
     if (yon()) {
+      $("#kExcel").onclick = (e) => excelAktar(e.currentTarget);
       $("#kYeni").onclick = () => kalipFormu(null);
       $("#kTedarikci").onclick = tedarikciPenceresi;
       $("#kArsiv").onclick = arsivPenceresi;
@@ -326,6 +329,14 @@
       verileriYukle(true);
       return;
     }
+    // Fiyatlar yalnızca Yönetim için ayrı tablodan okunur (Üretime veritabanı hiç döndürmez)
+    const fiyatlar = {};
+    if (yon() && gecmis.length) {
+      try {
+        const f = await sorgu(sb.from("gonderim_fiyatlari").select("gonderim_id, fiyat, guncelleyen_ad, guncelleme").in("gonderim_id", gecmis.map(g => g.id)));
+        f.forEach(x => { fiyatlar[x.gonderim_id] = x; });
+      } catch (e) { bildir("Fiyatlar yüklenemedi: " + e.message, true); }
+    }
     p.kalip = k;
     p.baslik(k.urun_adi);
     const disarida = !!k.acik_gonderim_id;
@@ -363,12 +374,13 @@
             <dt>Mevcut konum</dt><dd>${konum}</dd>
             <dt>Son tedarikçi</dt><dd>${k.son_tedarikci_ad ? esc(k.son_tedarikci_ad) : "—"}</dd>
             <dt>Son üretim</dt><dd>${esc(k.tamamlanan_var ? adetYaz(k.son_uretim_adedi) : "Henüz tamamlanmış gönderim yok")}</dd>
+            ${yon() && disarida ? `<dt>Mevcut gönderim fiyatı</dt><dd>${esc(fiyatYaz(fiyatlar[k.acik_gonderim_id] && fiyatlar[k.acik_gonderim_id].fiyat))}</dd>` : ""}
           </dl>
           <div class="eylemler">${eylem.join("")}</div>
         </div>
       </div>
       <h4 class="gecmis-baslik">Hareket geçmişi <span class="sayi">${gecmis.length}</span></h4>
-      ${gecmis.length ? gecmis.map(g => hareketHtml(g)).join("") : `<p class="not">Henüz gönderim yok.</p>`}`;
+      ${gecmis.length ? gecmis.map(g => hareketHtml(g, fiyatlar[g.id])).join("") : `<p class="not">Henüz gönderim yok.</p>`}`;
 
     // Fotoğraf: detay açılınca yüklenir
     if (k.foto_yolu) {
@@ -398,9 +410,12 @@
     p.govde.querySelectorAll("[data-duzelt]").forEach(b => {
       b.onclick = () => duzeltFormu(gecmis.find(g => g.id === b.dataset.duzelt), p);
     });
+    p.govde.querySelectorAll("[data-fiyat]").forEach(b => {
+      b.onclick = () => fiyatFormu(gecmis.find(g => g.id === b.dataset.fiyat), fiyatlar[b.dataset.fiyat], p);
+    });
   }
 
-  function hareketHtml(g) {
+  function hareketHtml(g, fiyat) {
     const ted = g.tedarikciler || {};
     const acikMi = !g.donus_zamani;
     return `<div class="hareket">
@@ -416,7 +431,43 @@
         <div class="h-satir"><span class="h-et">Döndü</span><span>${esc(tarihSaat(g.donus_zamani))} · ${esc(g.geri_alan_ad)}</span></div>
         ${g.donus_aciklama ? `<div class="h-satir"><span class="h-et">Açıklama</span><span class="h-acik">${esc(g.donus_aciklama)}</span></div>` : ""}
         <div class="h-satir"><span class="h-et">Üretim</span><span>${esc(adetYaz(g.uretim_adedi))}</span></div>`}
+      ${yon() ? `<div class="h-satir"><span class="h-et">Fiyat</span><span>${esc(fiyatYaz(fiyat && fiyat.fiyat))}
+          ${fiyat ? `<span class="kaldirildi"> · ${esc(fiyat.guncelleyen_ad)}, ${esc(tarihSaat(fiyat.guncelleme))}</span>` : ""}
+          <button type="button" class="btn kucuk sade" data-fiyat="${esc(g.id)}" style="margin-left:6px">${fiyat ? "Fiyatı düzenle" : "Fiyat ekle"}</button></span></div>` : ""}
     </div>`;
+  }
+
+  /* ---------------- Gönderim fiyatı (yalnızca Yönetim) ---------------- */
+  function fiyatFormu(g, mevcut, detay) {
+    if (!g || !yon()) return;
+    const deger = mevcut ? Number(mevcut.fiyat).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+    const p = pencereAc({
+      baslik: mevcut ? "Fiyatı düzenle" : "Fiyat ekle", kucuk: true,
+      govde: `<form id="f">
+        <p class="not">${esc((g.tedarikciler && g.tedarikciler.ad) || "")} · gönderim ${esc(tarihSaat(g.gonderme_zamani))}</p>
+        <label>Fiyat<input type="text" name="fiyat" inputmode="decimal" autocomplete="off" value="${esc(deger)}"></label>
+        <p class="not">Boş bırakılırsa fiyat “Belirtilmedi” olur. 0 girilirse sıfır olarak kaydedilir.</p>
+        <p class="form-hata" hidden></p>
+      </form>`,
+      alt: `<button type="button" class="btn sade" data-i="iptal">İptal</button>
+            <button type="submit" form="f" class="btn ana">Kaydet</button>`,
+    });
+    p.q('[data-i="iptal"]').onclick = () => p.kapat();
+    const f = p.q("#f"), hata = p.q(".form-hata");
+    f.fiyat.focus(); f.fiyat.select();
+    f.onsubmit = (ev) => {
+      ev.preventDefault();
+      hata.hidden = true;
+      const fiyat = fiyatOku(f.fiyat.value);
+      if (fiyat === undefined) { hata.textContent = "Fiyat sıfır veya daha büyük, en fazla iki ondalıklı bir sayı olmalıdır (ör. 1250,50)."; hata.hidden = false; return; }
+      mesgulCalistir(p, async () => {
+        try { await rpc("gonderim_fiyat_ayarla", { p_gonderim_id: g.id, p_fiyat: fiyat }); }
+        catch (e) { hata.textContent = e.message; hata.hidden = false; return; }
+        p.kapat();
+        bildir("Fiyat kaydedildi");
+        detay.yenile();
+      });
+    };
   }
 
   /* ---------------- Gönderme / geri alma ---------------- */
@@ -433,6 +484,7 @@
         </label>
         <p class="not">${yon() ? "Tedarikçi listesini “Tedarikçiler” düğmesinden düzenleyebilirsiniz." : "Tedarikçi eklenmesi için yönetime başvurun."}</p>
         <label>Gönderme açıklaması (isteğe bağlı)<textarea name="aciklama" maxlength="1000"></textarea></label>
+        ${yon() ? `<label>Fiyat<input type="text" name="fiyat" inputmode="decimal" autocomplete="off"></label>` : ""}
         <p class="form-hata" hidden></p>
       </form>`,
       alt: `<button type="button" class="btn sade" data-i="iptal">İptal</button>
@@ -444,9 +496,15 @@
       ev.preventDefault();
       hata.hidden = true;
       if (!f.ted.value) { hata.textContent = "Tedarikçi seçin."; hata.hidden = false; return; }
+      const parametre = { p_kalip_id: k.id, p_tedarikci_id: f.ted.value, p_aciklama: f.aciklama.value };
+      if (yon()) {
+        const fiyat = fiyatOku(f.fiyat.value);
+        if (fiyat === undefined) { hata.textContent = "Fiyat sıfır veya daha büyük, en fazla iki ondalıklı bir sayı olmalıdır (ör. 1250,50)."; hata.hidden = false; return; }
+        if (fiyat !== null) parametre.p_fiyat = fiyat;
+      }
       mesgulCalistir(p, async () => {
         try {
-          await rpc("kalip_gonder", { p_kalip_id: k.id, p_tedarikci_id: f.ted.value, p_aciklama: f.aciklama.value });
+          await rpc("kalip_gonder", parametre);
         } catch (e) {
           hata.textContent = e.message; hata.hidden = false;
           verileriYukle(true);
@@ -499,6 +557,23 @@
       });
     };
   }
+
+  // Fiyat (Türkçe giriş): "" -> null, "0" -> "0", "1250,5" / "1.250,50" / "1250.50" -> "1250.50", geçersiz -> undefined
+  // Virgül ondalık ayırıcıdır; virgül yoksa "1.250" binlik, "12.5" ondalık sayılır. En fazla 2 ondalık.
+  function fiyatOku(v) {
+    let s = String(v || "").replace(/\s/g, "");
+    if (s === "") return null;
+    if (s.includes(",")) {
+      if (!/^(\d{1,3}(\.\d{3})+|\d+),\d{1,2}$/.test(s)) return undefined;
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+      s = s.replace(/\./g, "");
+    } else if (!/^\d+(\.\d{1,2})?$/.test(s)) return undefined;
+    const [tam, ond = ""] = s.split(".");
+    if (tam.replace(/^0+(?=\d)/, "").length > 12) return undefined;
+    return (tam.replace(/^0+(?=\d)/, "") || "0") + "." + ond.padEnd(2, "0");
+  }
+  const fiyatYaz = (n) => n == null ? "Belirtilmedi" : Number(n).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // "" -> null (Belirtilmedi), "0" -> 0, "5.000" / "5000" -> 5000, geçersiz -> undefined
   function adetOku(v) {
@@ -866,6 +941,7 @@
   const TARIH_BICIMI = "dd.mm.yyyy hh:mm";
 
   async function excelAktar(btn) {
+    if (!yon()) { bildir("Excel'e aktarma yalnızca Yönetim girişinde kullanılabilir.", true); return; }
     if (btn.disabled) return;
     const metin = btn.textContent;
     btn.disabled = true; btn.textContent = "Hazırlanıyor…";
@@ -994,6 +1070,6 @@
     if (acik && !document.hidden && !document.querySelector(".perde")) verileriYukle(true);
   });
 
-  window.Kalip = { ac, kapat, _test: { sayfaAdiUret, adetOku } };
+  window.Kalip = { ac, kapat, _test: { sayfaAdiUret, adetOku, fiyatOku, fiyatYaz } };
   if (typeof sayfaGoster === "function") sayfaGoster();
 })();

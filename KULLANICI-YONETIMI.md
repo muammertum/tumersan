@@ -78,7 +78,8 @@ Yetkiler hem ekranda hem Supabase veritabanında ve fotoğraf deposunda uygulan�
 |---|---|---|
 | Aktif kalıpları, fotoğrafları ve geçmişi görme | ✓ | ✓ |
 | Tedarikçiye gönderme / rafa geri alma (açıklama, adet) | ✓ | ✓ |
-| Aktif kalıpları Excel'e aktarma | ✓ | ✓ |
+| Gönderim fiyatını görme, girme, düzenleme | ✓ | – (veritabanı Üretime fiyat hiç döndürmez) |
+| Excel'e aktarma | ✓ | – |
 | Kalıp oluşturma, düzenleme, fotoğraf | ✓ | – |
 | Tedarikçi ekleme, ad düzeltme, silme | ✓ | – |
 | Geçmiş kayıtları düzeltme | ✓ | – |
@@ -89,7 +90,8 @@ Not: Ekran, girişte seçilen düğmeye göre açılır. Veritabanı ise kişini
 listesine bakar. `ym` gibi iki bölüme yetkili biri Üretim düğmesiyle girse de
 veritabanında Yönetim yetkisi vardır, yalnızca ekranda Yönetim düğmeleri görünmez.
 
-Veritabanı kurulumunun tamamı: `supabase/migrations/20261108120000_kalip_takibi.sql`
+Veritabanı kurulumunun tamamı: `supabase/migrations/` klasöründeki dosyalar (tarih sırasıyla).
+Fiyatlar ayrı `gonderim_fiyatlari` tablosunda durur; bu tabloyu yalnızca Yönetim okuyabilir.
 
 ## Şu anki kullanıcılar
 

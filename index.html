@@ -223,7 +223,7 @@
   .arac-cubugu { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none; }
   .arac-cubugu h2 { margin: 0 8px 0 4px; font-size: 21px; color: var(--lacivert); }
   .arac-cubugu .bosluk { flex: 1; }
-  .kalip-alan { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 52px 1fr; position: relative; }
+  .kalip-alan { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 64px 1fr; position: relative; }
   .liste-kutu {
     background: #fff; border-radius: 12px; box-shadow: 0 1px 8px rgba(20, 30, 70, .07);
     display: flex; flex-direction: column; min-height: 0; overflow: hidden;
@@ -252,15 +252,15 @@
   .orta { position: relative; }
   .isci-bekle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); line-height: 0; }
   .isci-katman { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
-  .isci-gezen { position: absolute; left: 0; top: 0; width: 16px; height: 28px; line-height: 0; will-change: transform; }
+  .isci-gezen { position: absolute; left: 0; top: 0; width: 24px; height: 42px; line-height: 0; will-change: transform; }
   .isci-gezen .isci-svg { transform-origin: 50% 50%; }
   .kalip-simge {
-    position: absolute; left: 3px; top: 13px; width: 11px; height: 8px; border-radius: 1.5px;
-    background: #9aa0aa; border: 1px solid #6d737d; opacity: 0;
+    position: absolute; left: 4px; top: 19px; width: 16px; height: 12px; border-radius: 2px;
+    background: #9aa0aa; border: 1.5px solid #6d737d; opacity: 0;
   }
   .isci-svg .bacak { transform-box: fill-box; transform-origin: 50% 0; }
-  .yuruyor .bacak-sol { animation: adim .22s ease-in-out infinite alternate; }
-  .yuruyor .bacak-sag { animation: adim .22s ease-in-out infinite alternate-reverse; }
+  .yuruyor .bacak-sol { animation: adim .34s ease-in-out infinite alternate; }
+  .yuruyor .bacak-sag { animation: adim .34s ease-in-out infinite alternate-reverse; }
   @keyframes adim { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
 
   /* Pencereler (detay, formlar, onaylar) */
@@ -323,17 +323,25 @@
 
   /* Bildirim */
   .bildirim {
-    position: fixed; left: 50%; bottom: 74px; transform: translateX(-50%); z-index: 200; max-width: calc(100% - 32px);
-    background: var(--lacivert); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 15px; font-weight: 600;
-    box-shadow: 0 6px 24px rgba(10, 15, 40, .3); text-align: center;
+    position: fixed; left: 50%; bottom: 72px; transform: translateX(-50%); z-index: 200;
+    width: max-content; max-width: min(780px, calc(100% - 32px)); pointer-events: none;
+    background: var(--lacivert); color: #fff; padding: 24px 40px; border-radius: 18px;
+    font-size: 30px; font-weight: 700; line-height: 1.3; text-align: center; overflow-wrap: anywhere;
+    box-shadow: 0 10px 36px rgba(10, 15, 40, .4); border: 3px solid rgba(255, 255, 255, .25);
+    animation: bildirim-gir .25s ease-out;
   }
-  .bildirim.hatali { background: var(--hata); }
+  .bildirim.hatali { background: var(--hata); font-size: 24px; }
+  @keyframes bildirim-gir { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @media (max-width: 600px), (max-height: 520px) {
+    .bildirim { font-size: 22px; padding: 16px 22px; bottom: 20px; border-radius: 14px; }
+    .bildirim.hatali { font-size: 18px; }
+  }
 
   /* Telefon dik: listeler alt alta, sayfa kayar */
   @media (max-width: 720px) and (orientation: portrait) {
     .uygulama { height: auto; min-height: 100dvh; }
     .kalip-sayfa { padding: 10px 12px; }
-    .kalip-alan { grid-template-columns: 1fr; grid-template-rows: auto 46px auto; }
+    .kalip-alan { grid-template-columns: 1fr; grid-template-rows: auto 60px auto; }
     .liste { max-height: 52dvh; }
     .detay { grid-template-columns: 1fr; }
     .perde { padding: 0; align-items: stretch; }
@@ -364,7 +372,6 @@
           <div class="logo-kutu">tümersan</div>
           <div class="logo-alt"><span>OTOMOTİV</span></div>
         </div>
-        <p class="firma">Tümersan Otomotiv San. ve Tic. Ltd. Şti.</p>
       </div>
       <div class="ayrac"></div>
 
