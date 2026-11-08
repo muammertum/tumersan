@@ -114,27 +114,59 @@
   .serit::before { content: ""; flex: 1; background: var(--lacivert); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
   .serit::after { content: ""; width: 12%; background: var(--lacivert); clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%); }
 
-  /* ================= Merhaba ekranı ================= */
-  .uygulama { min-height: 100%; display: flex; flex-direction: column; }
+  /* ================= Uygulama kabuğu ================= */
+  .uygulama { height: 100%; height: 100dvh; display: flex; flex-direction: column; }
   .ust {
-    background: var(--lacivert); color: #fff; display: flex; align-items: center; gap: 16px;
+    background: var(--lacivert); color: #fff; flex: none;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px;
     padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
   }
+  .ust-sol, .ust-sag { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .ust-sag { justify-content: flex-end; }
   .ust .marka-kucuk { font-weight: 800; font-size: 26px; letter-spacing: -.5px; }
   .ust .bolum-etiket {
     font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: .8;
-    border-left: 1px solid rgba(255,255,255,.35); padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,.35); padding-left: 14px; white-space: nowrap;
   }
-  .ust .bosluk { flex: 1; }
-  .ust .kim { font-size: 15px; opacity: .9; }
+  /* Yönetim girişinde ortada parlak, belirgin YÖNETİM yazısı */
+  .yonetim-baslik {
+    font-size: 24px; font-weight: 800; letter-spacing: 7px; color: #ffd34d;
+    padding: 3px 10px 3px 17px; border: 2px solid #ffd34d; border-radius: 8px;
+    background: rgba(255, 211, 77, .12); text-shadow: 0 0 12px rgba(255, 211, 77, .55);
+    white-space: nowrap; line-height: 1.2;
+  }
+  .ust .kim { font-size: 15px; opacity: .9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cikis {
-    border: 1.5px solid rgba(255,255,255,.6); background: none; color: #fff;
+    border: 1.5px solid rgba(255,255,255,.6); background: none; color: #fff; white-space: nowrap;
     padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600;
   }
   .cikis:hover { background: rgba(255,255,255,.12); }
-  .icerik { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; text-align: center; }
-  .icerik h2 { margin: 0; font-size: 46px; color: var(--lacivert); }
-  .icerik p { margin: 10px 0 0; color: var(--gri); font-size: 18px; }
+
+  /* Ana menü: modül düğmeleri soldan başlar, yenileri yanına / altına eklenir */
+  .ana-sayfa { flex: 1; overflow-y: auto; padding: 24px 20px; }
+  .moduller { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 210px)); gap: 14px; }
+  .modul { min-height: 130px; }
+
+  /* Genel düğmeler */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 16px; border-radius: 9px; cursor: pointer; font-size: 15px; font-weight: 600;
+    border: 1.5px solid var(--lacivert); background: #fff; color: var(--lacivert); white-space: nowrap;
+  }
+  .btn:hover { background: #f1f3f9; }
+  .btn.ana { background: var(--lacivert); color: #fff; }
+  .btn.ana:hover { background: var(--lacivert-koyu); }
+  .btn.tehlike { border-color: var(--hata); color: var(--hata); }
+  .btn.tehlike.ana { background: var(--hata); color: #fff; }
+  .btn.sade { border-color: var(--gri-acik); color: var(--yazi); }
+  .btn.kucuk { padding: 5px 10px; font-size: 13px; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  select, textarea, input[type=number], input[type=datetime-local] {
+    padding: 11px 12px; font-size: 16px; border-radius: 10px; color: var(--yazi); font-family: inherit;
+    border: 1.5px solid var(--gri-acik); background: var(--zemin); outline: none; width: 100%;
+  }
+  select:focus, textarea:focus, input[type=number]:focus, input[type=datetime-local]:focus { border-color: var(--lacivert); background: #fff; }
+  textarea { resize: vertical; min-height: 70px; }
 
   /* ================= Dikey / dar ekran (telefon dik) ================= */
   @media (max-width: 720px) and (orientation: portrait) {
@@ -143,7 +175,18 @@
     .marka { padding: 32px 24px 24px; gap: 16px; }
     .panel { padding: 24px 24px 32px; }
     .logo-kutu { font-size: 44px; }
+  }
+  /* Dar üst çubuk: isim gizlenir, YÖNETİM küçülür ama her zaman görünür */
+  @media (max-width: 760px) {
+    .ust { padding-left: 12px; padding-right: 12px; gap: 8px; }
     .ust .kim { display: none; }
+    .ust .marka-kucuk { font-size: 21px; }
+    .yonetim-baslik { font-size: 16px; letter-spacing: 3px; padding: 2px 6px 2px 9px; }
+    .cikis { padding: 6px 10px; font-size: 14px; }
+  }
+  @media (max-width: 420px) {
+    .ust .marka-kucuk { font-size: 18px; }
+    .ust .bolum-etiket { display: none; }
   }
 
   /* ================= Yatay telefon (alçak ekran) ================= */
@@ -173,6 +216,140 @@
     .cizgi { margin: 6px 0 10px; }
     label { gap: 3px; }
     form { gap: 7px; }
+  }
+
+  /* ================= Kalıp takibi ================= */
+  .kalip-sayfa { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 12px; }
+  .arac-cubugu { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: none; }
+  .arac-cubugu h2 { margin: 0 8px 0 4px; font-size: 21px; color: var(--lacivert); }
+  .arac-cubugu .bosluk { flex: 1; }
+  .kalip-alan { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 52px 1fr; position: relative; }
+  .liste-kutu {
+    background: #fff; border-radius: 12px; box-shadow: 0 1px 8px rgba(20, 30, 70, .07);
+    display: flex; flex-direction: column; min-height: 0; overflow: hidden;
+  }
+  .liste-baslik {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none;
+    padding: 11px 16px; border-bottom: 1px solid var(--gri-acik); font-weight: 700; font-size: 17px; color: var(--lacivert);
+  }
+  .liste-baslik::before { content: ""; width: 4px; height: 18px; background: var(--lacivert); border-radius: 2px; margin-right: -2px; }
+  .liste-baslik .ad { flex: 1; }
+  .sayi { min-width: 30px; text-align: center; padding: 2px 9px; border-radius: 20px; background: var(--lacivert); color: #fff; font-size: 14px; }
+  .liste { flex: 1; min-height: 0; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .liste-bos { color: var(--gri); text-align: center; padding: 24px 8px; font-size: 15px; }
+  .kart-kalip {
+    display: block; width: 100%; text-align: left; cursor: pointer; flex: none;
+    border: 1.5px solid var(--gri-acik); border-radius: 10px; background: #fff; padding: 11px 14px;
+    transition: border-color .15s, background .15s;
+  }
+  .kart-kalip:hover { border-color: var(--lacivert); background: #f8f9fc; }
+  .kart-kalip .k-ad { font-weight: 700; font-size: 17px; color: var(--yazi); word-break: break-word; }
+  .kart-kalip .k-alt { margin-top: 3px; font-size: 14px; color: var(--gri); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .kart-kalip .k-ted { color: var(--lacivert); font-weight: 600; }
+  .alt-cubuk { flex: none; display: flex; justify-content: flex-end; }
+
+  /* İşçi karakteri */
+  .orta { position: relative; }
+  .isci-bekle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); line-height: 0; }
+  .isci-katman { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+  .isci-gezen { position: absolute; left: 0; top: 0; width: 16px; height: 28px; line-height: 0; will-change: transform; }
+  .isci-gezen .isci-svg { transform-origin: 50% 50%; }
+  .kalip-simge {
+    position: absolute; left: 3px; top: 13px; width: 11px; height: 8px; border-radius: 1.5px;
+    background: #9aa0aa; border: 1px solid #6d737d; opacity: 0;
+  }
+  .isci-svg .bacak { transform-box: fill-box; transform-origin: 50% 0; }
+  .yuruyor .bacak-sol { animation: adim .22s ease-in-out infinite alternate; }
+  .yuruyor .bacak-sag { animation: adim .22s ease-in-out infinite alternate-reverse; }
+  @keyframes adim { from { transform: rotate(-18deg); } to { transform: rotate(18deg); } }
+
+  /* Pencereler (detay, formlar, onaylar) */
+  .perde {
+    position: fixed; inset: 0; background: rgba(15, 20, 45, .45); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .pencere {
+    background: #fff; border-radius: 14px; width: 100%; max-width: 720px; max-height: 100%;
+    display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(10, 15, 40, .3);
+  }
+  .pencere.kucuk { max-width: 460px; }
+  .pencere-ust {
+    display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--gri-acik); flex: none;
+  }
+  .pencere-ust h3 { margin: 0; flex: 1; font-size: 19px; color: var(--lacivert); word-break: break-word; }
+  .kapat-x { border: none; background: none; font-size: 28px; line-height: 1; color: var(--gri); cursor: pointer; padding: 0 4px; }
+  .kapat-x:hover { color: var(--yazi); }
+  .pencere-govde { padding: 16px 18px; overflow-y: auto; }
+  .pencere-govde form { gap: 12px; }
+  .pencere-alt { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--gri-acik); flex: none; flex-wrap: wrap; }
+  .not { font-size: 14px; color: var(--gri); margin: 0; }
+  .form-hata { color: var(--hata); font-size: 15px; margin: 0; }
+  .onay-metin { font-size: 16px; line-height: 1.5; margin: 0; }
+  .onay-metin strong { color: var(--yazi); }
+
+  /* Detay */
+  .detay { display: grid; grid-template-columns: 260px 1fr; gap: 18px; }
+  .foto-kutu {
+    width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; background: var(--zemin); border: 1px solid var(--gri-acik);
+    display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--gri); font-size: 14px; text-align: center;
+  }
+  .foto-kutu img { width: 100%; height: 100%; object-fit: contain; background: #fff; cursor: zoom-in; }
+  .foto-islem { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .bilgi { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 15px; }
+  .bilgi dt { color: var(--gri); font-weight: 600; }
+  .bilgi dd { margin: 0; word-break: break-word; white-space: pre-line; }
+  .durum-rozet { display: inline-block; padding: 1px 9px; border-radius: 20px; font-size: 13px; font-weight: 700; }
+  .durum-rozet.raf { background: #e5f3ea; color: #1e6b3a; }
+  .durum-rozet.dis { background: #e8ecf8; color: var(--lacivert); }
+  .durum-rozet.arsiv { background: #f3e9d6; color: #7a5410; }
+  .eylemler { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .gecmis-baslik { margin: 20px 0 10px; font-size: 16px; color: var(--lacivert); display: flex; align-items: center; gap: 8px; }
+  .hareket { border: 1px solid var(--gri-acik); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 14px; }
+  .h-ust { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .h-ust strong { font-size: 15px; flex: 1; }
+  .h-satir { display: grid; grid-template-columns: 90px 1fr; gap: 2px 8px; margin-top: 3px; }
+  .h-et { color: var(--gri); font-weight: 600; }
+  .h-acik { color: var(--yazi); white-space: pre-line; word-break: break-word; }
+  .duzeltildi { font-size: 12px; color: #7a5410; background: #f3e9d6; padding: 1px 7px; border-radius: 10px; }
+  .kaldirildi { font-size: 12px; color: var(--gri); }
+
+  /* Tedarikçi ve arşiv listeleri */
+  .satir-liste { display: flex; flex-direction: column; gap: 6px; }
+  .satir { display: flex; align-items: center; gap: 8px; border: 1px solid var(--gri-acik); border-radius: 10px; padding: 8px 10px; }
+  .satir .s-ad { flex: 1; font-weight: 600; word-break: break-word; }
+  .satir input[type=text] { flex: 1; padding: 8px 10px; font-size: 16px; }
+  .ekle-satir { display: flex; gap: 8px; margin-bottom: 12px; }
+  .ekle-satir input { flex: 1; min-width: 0; }
+
+  /* Bildirim */
+  .bildirim {
+    position: fixed; left: 50%; bottom: 74px; transform: translateX(-50%); z-index: 200; max-width: calc(100% - 32px);
+    background: var(--lacivert); color: #fff; padding: 11px 20px; border-radius: 10px; font-size: 15px; font-weight: 600;
+    box-shadow: 0 6px 24px rgba(10, 15, 40, .3); text-align: center;
+  }
+  .bildirim.hatali { background: var(--hata); }
+
+  /* Telefon dik: listeler alt alta, sayfa kayar */
+  @media (max-width: 720px) and (orientation: portrait) {
+    .uygulama { height: auto; min-height: 100dvh; }
+    .kalip-sayfa { padding: 10px 12px; }
+    .kalip-alan { grid-template-columns: 1fr; grid-template-rows: auto 46px auto; }
+    .liste { max-height: 52dvh; }
+    .detay { grid-template-columns: 1fr; }
+    .perde { padding: 0; align-items: stretch; }
+    .pencere { border-radius: 0; max-height: none; height: 100%; }
+    .pencere.kucuk { height: auto; margin: auto 12px; border-radius: 14px; }
+  }
+  /* Yatay telefon / alçak ekran */
+  @media (max-height: 520px) and (orientation: landscape) {
+    .kalip-sayfa { padding: 8px 12px; gap: 6px; }
+    .arac-cubugu h2 { font-size: 18px; }
+    .btn { padding: 6px 11px; font-size: 14px; }
+    .liste-baslik { padding: 7px 12px; font-size: 15px; }
+    .kart-kalip { padding: 8px 11px; }
+    .kart-kalip .k-ad { font-size: 15px; }
+    .detay { grid-template-columns: 200px 1fr; }
+    .ust { padding-top: 6px; padding-bottom: 6px; }
   }
 </style>
 </head>
@@ -235,19 +412,32 @@
 <!-- ================= UYGULAMA ================= -->
 <div class="uygulama" id="uygulamaEkrani" hidden>
   <header class="ust">
-    <span class="marka-kucuk">tümersan</span>
-    <span class="bolum-etiket" id="bolumEtiket"></span>
-    <span class="bosluk"></span>
-    <span class="kim" id="kim"></span>
-    <button class="cikis" id="cikis">Çıkış yap</button>
+    <div class="ust-sol">
+      <span class="marka-kucuk">tümersan</span>
+      <span class="bolum-etiket" id="bolumEtiket"></span>
+    </div>
+    <div class="ust-orta"><span class="yonetim-baslik" id="yonetimBaslik" hidden>YÖNETİM</span></div>
+    <div class="ust-sag">
+      <span class="kim" id="kim"></span>
+      <button class="cikis" id="cikis">Çıkış yap</button>
+    </div>
   </header>
-  <main class="icerik">
-    <div>
-      <h2 id="merhaba">Merhaba</h2>
-      <p>Uygulama hazırlanıyor.</p>
+
+  <!-- Ana menü -->
+  <main class="ana-sayfa" id="anaSayfa">
+    <div class="moduller">
+      <button class="bolum modul" id="modulKalip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h4M7 16.5h4"/></svg>
+        Kalıp
+      </button>
     </div>
   </main>
+
+  <!-- Kalıp takibi (kalip.js) -->
+  <main class="kalip-sayfa" id="kalipSayfa" hidden></main>
 </div>
+
+<div id="bildirim" class="bildirim" role="status" aria-live="polite" hidden></div>
 
 <script>
   /* =====================================================================
@@ -307,14 +497,32 @@
     $("#formAdimi").hidden = false;
     $("#kullaniciAdi").focus();
   }
+  // Uygulamanın geri kalanı (kalip.js) bu bilgileri kullanır
+  window.oturum = { bolum: null, user: null, yonetim: false };
+
   function uygulamaGoster(user, bolum) {
     aktifBolumYaz(bolum);
+    window.oturum = { bolum, user, yonetim: bolum === "yonetim" };
     $("#girisEkrani").hidden = true;
     $("#uygulamaEkrani").hidden = false;
-    $("#bolumEtiket").textContent = BOLUM_ADI[bolum];
+    // Yönetim: ortada büyük YÖNETİM; Üretim: logonun yanında küçük etiket
+    $("#yonetimBaslik").hidden = bolum !== "yonetim";
+    $("#bolumEtiket").textContent = bolum === "yonetim" ? "" : BOLUM_ADI[bolum];
+    $("#bolumEtiket").hidden = bolum === "yonetim";
     $("#kim").textContent = gorunenAd(user);
-    $("#merhaba").textContent = "Merhaba, " + gorunenAd(user);
+    sayfaGoster();
   }
+
+  /* ---------- Sayfalar (adres çubuğundaki #kalip ile; geri tuşu çalışır) ---------- */
+  function sayfaGoster() {
+    if ($("#uygulamaEkrani").hidden) return;
+    const kalip = location.hash === "#kalip";
+    $("#anaSayfa").hidden = kalip;
+    $("#kalipSayfa").hidden = !kalip;
+    if (kalip) window.Kalip && Kalip.ac(); else window.Kalip && Kalip.kapat();
+  }
+  window.addEventListener("hashchange", sayfaGoster);
+  $("#modulKalip").onclick = () => { location.hash = "kalip"; };
   function hataGoster(mesaj) {
     $("#hata").textContent = mesaj;
     $("#hata").hidden = !mesaj;
@@ -330,7 +538,7 @@
   }
 
   /* ---------- Olaylar ---------- */
-  document.querySelectorAll(".bolum").forEach(b => b.onclick = () => formGoster(b.dataset.bolum));
+  document.querySelectorAll("[data-bolum]").forEach(b => b.onclick = () => formGoster(b.dataset.bolum));
   $("#geri").onclick = secimGoster;
   $("#sifreGoster").onchange = (e) => { $("#sifre").type = e.target.checked ? "text" : "password"; };
 
@@ -365,11 +573,17 @@
     }
   };
 
-  $("#cikis").onclick = async () => { aktifBolumYaz(null); await sb.auth.signOut(); girisGoster(); };
+  $("#cikis").onclick = async () => {
+    aktifBolumYaz(null);
+    window.Kalip && Kalip.kapat();
+    history.replaceState(null, "", location.pathname + location.search);
+    await sb.auth.signOut();
+    girisGoster();
+  };
 
   // Oturum başka bir sebeple kapanırsa (kullanıcı silindi, süre doldu) giriş ekranına dön
   sb.auth.onAuthStateChange((olay) => {
-    if (olay === "SIGNED_OUT" && !girisYapiliyor) girisGoster();
+    if (olay === "SIGNED_OUT" && !girisYapiliyor) { window.Kalip && Kalip.kapat(); girisGoster(); }
   });
 
   /* ---------- Açılış: Çıkış yapılana kadar oturum hatırlanır ---------- */
@@ -386,8 +600,12 @@
     // Girilen bölüm hâlâ izinli mi? (yetkisi alındıysa oturumu kapat)
     const bolum = aktifBolumOku();
     if (!bolumleri(user).includes(bolum)) { aktifBolumYaz(null); await sb.auth.signOut(); return girisGoster(); }
+    // Yetki bilgisi oturum anahtarının içinde taşınır; değişmişse güncel halini almak için yenile
+    if (!error) await sb.auth.refreshSession();
     uygulamaGoster(user, bolum);
   })();
 </script>
+<!-- Excel aktarımı için ExcelJS, ilk kullanımda kalip.js tarafından yüklenir -->
+<script src="kalip.js"></script>
 </body>
 </html>

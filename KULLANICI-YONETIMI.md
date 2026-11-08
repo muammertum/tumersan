@@ -70,6 +70,27 @@ from auth.users
 order by email;
 ```
 
+## Kalıp takibinde yetkiler
+
+Yetkiler hem ekranda hem Supabase veritabanında ve fotoğraf deposunda uygulanır.
+
+| İşlem | Yönetim | Üretim |
+|---|---|---|
+| Aktif kalıpları, fotoğrafları ve geçmişi görme | ✓ | ✓ |
+| Tedarikçiye gönderme / rafa geri alma (açıklama, adet) | ✓ | ✓ |
+| Aktif kalıpları Excel'e aktarma | ✓ | ✓ |
+| Kalıp oluşturma, düzenleme, fotoğraf | ✓ | – |
+| Tedarikçi ekleme, ad düzeltme, silme | ✓ | – |
+| Geçmiş kayıtları düzeltme | ✓ | – |
+| Arşiv: görme, arşive alma, geri getirme, kalıcı silme | ✓ | – |
+| Excel'e arşivi de dahil etme | ✓ | – |
+
+Not: Ekran, girişte seçilen düğmeye göre açılır. Veritabanı ise kişinin `bolumler`
+listesine bakar. `ym` gibi iki bölüme yetkili biri Üretim düğmesiyle girse de
+veritabanında Yönetim yetkisi vardır, yalnızca ekranda Yönetim düğmeleri görünmez.
+
+Veritabanı kurulumunun tamamı: `supabase/migrations/20261108120000_kalip_takibi.sql`
+
 ## Şu anki kullanıcılar
 
 | Kullanıcı adı | Girebildiği bölümler | Görünen ad |
