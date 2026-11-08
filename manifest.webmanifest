@@ -1,0 +1,18 @@
+{
+  "name": "Tümersan",
+  "short_name": "Tümersan",
+  "description": "Tümersan Otomotiv iç uygulaması",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#1b2a6b",
+  "background_color": "#f3f4f7",
+  "icons": [
+    { "src": "simgeler/simge-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "simgeler/simge-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "simgeler/simge-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "simgeler/simge-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
