@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b2a6b">
+<title>Tümersan</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+  /* ================= Renkler (imzadaki tonlar) ================= */
+  :root {
+    --lacivert: #1b2a6b;
+    --lacivert-koyu: #131f52;
+    --gri: #8b9099;
+    --gri-acik: #e3e5ea;
+    --zemin: #f3f4f7;
+    --kart: #ffffff;
+    --yazi: #1d1f24;
+    --hata: #c62828;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--zemin);
+    color: var(--yazi);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input { font: inherit; }
+
+  /* ================= Logo ================= */
+  .logo { display: inline-flex; flex-direction: column; align-items: stretch; }
+  .logo-kutu {
+    background: var(--lacivert); color: #fff; border-radius: 14px;
+    padding: 4px 22px 10px; font-weight: 800; font-size: 54px; line-height: 1;
+    letter-spacing: -1px; text-align: center;
+  }
+  .logo-alt {
+    display: flex; align-items: center; gap: 10px; margin-top: 8px;
+    color: var(--gri); font-weight: 600; font-size: 15px; letter-spacing: 7px;
+  }
+  .logo-alt::before, .logo-alt::after { content: ""; flex: 1; height: 2px; background: var(--gri); }
+  .logo-alt span { margin-right: -7px; } /* son harfteki boşluğu dengele */
+
+  /* ================= Giriş ekranı ================= */
+  .giris {
+    min-height: 100%; display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  }
+  .giris-orta { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+  .kart {
+    width: 100%; max-width: 920px; background: var(--kart); border-radius: 16px;
+    box-shadow: 0 2px 18px rgba(20, 30, 70, .08);
+    display: flex; align-items: stretch;
+  }
+  .marka {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 32px; text-align: center; gap: 22px;
+  }
+  .firma { font-weight: 700; font-size: 17px; color: var(--yazi); margin: 0; }
+  .ayrac { width: 2px; background: var(--gri-acik); margin: 32px 0; }
+  .panel { flex: 1; padding: 40px 40px; display: flex; flex-direction: column; justify-content: center; }
+
+  .panel h1 { margin: 0; font-size: 26px; color: var(--lacivert); }
+  .cizgi { display: flex; align-items: center; gap: 0; margin: 12px 0 22px; }
+  .cizgi::before { content: ""; width: 56px; height: 4px; background: var(--lacivert); }
+  .cizgi::after { content: ""; flex: 1; height: 1px; background: var(--gri-acik); }
+  .aciklama { margin: 0 0 18px; color: var(--gri); font-size: 16px; }
+
+  .bolumler { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .bolum {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    min-height: 130px; padding: 16px; border-radius: 12px; cursor: pointer;
+    border: 2px solid var(--gri-acik); background: #fff; color: var(--lacivert);
+    font-size: 20px; font-weight: 700; transition: border-color .15s, background .15s, transform .1s;
+  }
+  .bolum svg { width: 40px; height: 40px; }
+  .bolum:hover { border-color: var(--lacivert); background: #f6f7fb; }
+  .bolum:active { transform: scale(.98); }
+
+  .geri {
+    align-self: flex-start; border: none; background: none; color: var(--gri);
+    padding: 0; margin: 0 0 14px; cursor: pointer; font-size: 15px;
+  }
+  .geri:hover { color: var(--lacivert); }
+  form { display: flex; flex-direction: column; gap: 14px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--gri); font-weight: 600; }
+  input[type=text], input[type=password] {
+    padding: 13px 14px; font-size: 18px; border-radius: 10px; color: var(--yazi);
+    border: 1.5px solid var(--gri-acik); background: var(--zemin); outline: none;
+  }
+  input[type=text]:focus, input[type=password]:focus { border-color: var(--lacivert); background: #fff; }
+  .goster { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; cursor: pointer; }
+  .goster input { width: 18px; height: 18px; accent-color: var(--lacivert); }
+  .hata { color: var(--hata); font-size: 15px; margin: 0; }
+  .ana-buton {
+    padding: 14px; border: none; border-radius: 10px; cursor: pointer;
+    background: var(--lacivert); color: #fff; font-size: 18px; font-weight: 700;
+  }
+  .ana-buton:hover { background: var(--lacivert-koyu); }
+  .ana-buton:disabled { opacity: .7; cursor: default; }
+
+  /* İmzadaki alt şerit */
+  .serit { display: flex; gap: 14px; height: 12px; margin: 0 16px 16px; }
+  .serit::before { content: ""; flex: 1; background: var(--lacivert); clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%); }
+  .serit::after { content: ""; width: 12%; background: var(--lacivert); clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%); }
+
+  /* ================= Merhaba ekranı ================= */
+  .uygulama { min-height: 100%; display: flex; flex-direction: column; }
+  .ust {
+    background: var(--lacivert); color: #fff; display: flex; align-items: center; gap: 16px;
+    padding: 10px 20px; padding-top: max(10px, env(safe-area-inset-top));
+  }
+  .ust .marka-kucuk { font-weight: 800; font-size: 26px; letter-spacing: -.5px; }
+  .ust .bolum-etiket {
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase; opacity: .8;
+    border-left: 1px solid rgba(255,255,255,.35); padding-left: 16px;
+  }
+  .ust .bosluk { flex: 1; }
+  .ust .kim { font-size: 15px; opacity: .9; }
+  .cikis {
+    border: 1.5px solid rgba(255,255,255,.6); background: none; color: #fff;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600;
+  }
+  .cikis:hover { background: rgba(255,255,255,.12); }
+  .icerik { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 16px; text-align: center; }
+  .icerik h2 { margin: 0; font-size: 46px; color: var(--lacivert); }
+  .icerik p { margin: 10px 0 0; color: var(--gri); font-size: 18px; }
+
+  /* ================= Dikey / dar ekran (telefon dik) ================= */
+  @media (max-width: 720px) and (orientation: portrait) {
+    .kart { flex-direction: column; max-width: 480px; }
+    .ayrac { width: auto; height: 2px; margin: 0 28px; }
+    .marka { padding: 32px 24px 24px; gap: 16px; }
+    .panel { padding: 24px 24px 32px; }
+    .logo-kutu { font-size: 44px; }
+    .ust .kim { display: none; }
+  }
+
+  /* ================= Yatay telefon (alçak ekran) ================= */
+  @media (max-height: 520px) and (orientation: landscape) {
+    .giris-orta { padding: 12px 16px; }
+    .marka { padding: 16px 20px; gap: 12px; }
+    .logo-kutu { font-size: 38px; padding: 2px 16px 8px; border-radius: 10px; }
+    .logo-alt { font-size: 12px; letter-spacing: 5px; margin-top: 6px; }
+    .firma { font-size: 14px; }
+    .ayrac { margin: 16px 0; }
+    .panel { padding: 16px 24px; }
+    .panel h1 { font-size: 21px; }
+    .cizgi { margin: 8px 0 12px; }
+    .aciklama { margin-bottom: 10px; font-size: 14px; }
+    .bolum { min-height: 96px; font-size: 18px; gap: 6px; }
+    .bolum svg { width: 30px; height: 30px; }
+    .geri { margin-bottom: 8px; }
+    form { gap: 9px; }
+    input[type=text], input[type=password] { padding: 9px 12px; font-size: 16px; }
+    .ana-buton { padding: 11px; font-size: 16px; }
+    .serit { height: 8px; margin-bottom: 8px; }
+    .icerik h2 { font-size: 36px; }
+  }
+  @media (max-height: 420px) and (orientation: landscape) {
+    .firma { display: none; }
+    .panel h1 { font-size: 19px; }
+    .cizgi { margin: 6px 0 10px; }
+    label { gap: 3px; }
+    form { gap: 7px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= GİRİŞ ================= -->
+<div class="giris" id="girisEkrani" hidden>
+  <div class="giris-orta">
+    <div class="kart">
+      <div class="marka">
+        <div class="logo">
+          <div class="logo-kutu">tümersan</div>
+          <div class="logo-alt"><span>OTOMOTİV</span></div>
+        </div>
+        <p class="firma">Tümersan Otomotiv San. ve Tic. Ltd. Şti.</p>
+      </div>
+      <div class="ayrac"></div>
+
+      <div class="panel">
+        <!-- 1. adım: bölüm seçimi -->
+        <div id="secimAdimi">
+          <h1>Giriş</h1>
+          <div class="cizgi"></div>
+          <p class="aciklama">Bölümünüzü seçin.</p>
+          <div class="bolumler">
+            <button class="bolum" data-bolum="yonetim">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg>
+              Yönetim
+            </button>
+            <button class="bolum" data-bolum="uretim">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+              Üretim
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. adım: kullanıcı adı / şifre -->
+        <div id="formAdimi" hidden>
+          <button type="button" class="geri" id="geri">← Bölüm seçimine dön</button>
+          <h1 id="formBaslik">Yönetim girişi</h1>
+          <div class="cizgi"></div>
+          <form id="girisFormu" autocomplete="on">
+            <label>Kullanıcı adı
+              <input type="text" id="kullaniciAdi" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+            </label>
+            <label>Şifre
+              <input type="password" id="sifre" autocomplete="current-password" required>
+            </label>
+            <label class="goster"><input type="checkbox" id="sifreGoster"> Şifreyi göster</label>
+            <p class="hata" id="hata" hidden></p>
+            <button type="submit" class="ana-buton" id="girisButonu">Giriş yap</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="serit"></div>
+</div>
+
+<!-- ================= UYGULAMA ================= -->
+<div class="uygulama" id="uygulamaEkrani" hidden>
+  <header class="ust">
+    <span class="marka-kucuk">tümersan</span>
+    <span class="bolum-etiket" id="bolumEtiket"></span>
+    <span class="bosluk"></span>
+    <span class="kim" id="kim"></span>
+    <button class="cikis" id="cikis">Çıkış yap</button>
+  </header>
+  <main class="icerik">
+    <div>
+      <h2 id="merhaba">Merhaba</h2>
+      <p>Uygulama hazırlanıyor.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+  /* =====================================================================
+     SUPABASE BAĞLANTISI
+     Kullanıcılar ve şifreler artık bu dosyada değil, Supabase'te durur.
+     Kullanıcı ekleme / şifre değiştirme: KULLANICI-YONETIMI.md dosyasına bakın.
+     Aşağıdaki anahtar "publishable" (herkese açık) anahtardır; sayfada
+     durması normaldir, tek başına kimseye yetki vermez.
+     ===================================================================== */
+  const SUPABASE_URL = "https://puzixopquysefichmkfh.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_ABf6LvHUj_K0WN4O6c_XUw_bPIQSscE";
+  const ALAN_ADI = "tumersan.local";   // kullanıcı adı -> kullanici@tumersan.local
+
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const BOLUM_ADI = { yonetim: "Yönetim", uretim: "Üretim" };
+  const $ = (s) => document.querySelector(s);
+  let seciliBolum = null;
+  let girisYapiliyor = false;
+
+  // Kullanıcı adında büyük/küçük harf ve Türkçe harf farkı önemsiz:
+  // "Muammer", "MUAMMER", "muammer" aynı; "Üretim" = "uretim", "URETIM" = "uretim"
+  function adSadelestir(s) {
+    const harf = { "ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u" };
+    return s.trim().toLocaleLowerCase("tr-TR").replace(/[çğıöşü]/g, h => harf[h]);
+  }
+  const gorunenAd = (u) => (u.user_metadata && u.user_metadata.gorunen_ad) || u.email.split("@")[0];
+  const bolumu = (u) => u.app_metadata && u.app_metadata.bolum;
+
+  /* ---------- Ekranlar ---------- */
+  function girisGoster() {
+    $("#uygulamaEkrani").hidden = true;
+    $("#girisEkrani").hidden = false;
+    secimGoster();
+  }
+  function secimGoster() {
+    seciliBolum = null;
+    $("#secimAdimi").hidden = false;
+    $("#formAdimi").hidden = true;
+  }
+  function formGoster(bolum) {
+    seciliBolum = bolum;
+    $("#formBaslik").textContent = BOLUM_ADI[bolum] + " girişi";
+    $("#girisFormu").reset();
+    hataGoster("");
+    $("#sifre").type = "password";
+    $("#secimAdimi").hidden = true;
+    $("#formAdimi").hidden = false;
+    $("#kullaniciAdi").focus();
+  }
+  function uygulamaGoster(user) {
+    $("#girisEkrani").hidden = true;
+    $("#uygulamaEkrani").hidden = false;
+    $("#bolumEtiket").textContent = BOLUM_ADI[bolumu(user)] || "";
+    $("#kim").textContent = gorunenAd(user);
+    $("#merhaba").textContent = "Merhaba, " + gorunenAd(user);
+  }
+  function hataGoster(mesaj) {
+    $("#hata").textContent = mesaj;
+    $("#hata").hidden = !mesaj;
+  }
+  function hataCevir(err) {
+    const m = (err && err.message || "").toLowerCase();
+    if (m.includes("invalid login")) return "Kullanıcı adı veya şifre hatalı.";
+    if (m.includes("rate limit") || m.includes("too many") || m.includes("security purposes"))
+      return "Çok sık deneme yapıldı. Bir dakika bekleyip tekrar deneyin.";
+    if (m.includes("fetch") || m.includes("network"))
+      return "Sunucuya ulaşılamadı. İnternet bağlantısını kontrol edin.";
+    return "Bir hata oluştu: " + (err && err.message || "bilinmeyen hata");
+  }
+
+  /* ---------- Olaylar ---------- */
+  document.querySelectorAll(".bolum").forEach(b => b.onclick = () => formGoster(b.dataset.bolum));
+  $("#geri").onclick = secimGoster;
+  $("#sifreGoster").onchange = (e) => { $("#sifre").type = e.target.checked ? "text" : "password"; };
+
+  $("#girisFormu").onsubmit = async (e) => {
+    e.preventDefault();
+    const ad = adSadelestir($("#kullaniciAdi").value);
+    const sifre = $("#sifre").value;
+    const btn = $("#girisButonu");
+    hataGoster("");
+    btn.disabled = true; btn.textContent = "Giriş yapılıyor...";
+    girisYapiliyor = true;
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email: `${ad}@${ALAN_ADI}`, password: sifre });
+      if (error) throw error;
+      // Kullanıcı seçtiği bölüme kayıtlı mı?
+      const bolum = bolumu(data.user);
+      if (bolum !== seciliBolum) {
+        await sb.auth.signOut();
+        hataGoster(bolum
+          ? `Bu kullanıcı ${BOLUM_ADI[bolum] || bolum} bölümüne kayıtlı. O bölümden giriş yapın.`
+          : "Bu kullanıcıya henüz bölüm atanmamış. Yöneticiye başvurun.");
+        return;
+      }
+      uygulamaGoster(data.user);
+    } catch (err) {
+      hataGoster(hataCevir(err));
+      $("#sifre").value = "";
+      $("#sifre").focus();
+    } finally {
+      girisYapiliyor = false;
+      btn.disabled = false; btn.textContent = "Giriş yap";
+    }
+  };
+
+  $("#cikis").onclick = async () => { await sb.auth.signOut(); girisGoster(); };
+
+  // Oturum başka bir sebeple kapanırsa (kullanıcı silindi, süre doldu) giriş ekranına dön
+  sb.auth.onAuthStateChange((olay) => {
+    if (olay === "SIGNED_OUT" && !girisYapiliyor) girisGoster();
+  });
+
+  /* ---------- Açılış: Çıkış yapılana kadar oturum hatırlanır ---------- */
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return girisGoster();
+    // Kullanıcı hâlâ geçerli mi, sunucuya sor (silindiyse oturumu kapat)
+    const { data, error } = await sb.auth.getUser();
+    if (error && error.status && error.status >= 400 && error.status < 500) {
+      await sb.auth.signOut();
+      return girisGoster();
+    }
+    const user = (data && data.user) || session.user;
+    if (!BOLUM_ADI[bolumu(user)]) { await sb.auth.signOut(); return girisGoster(); }
+    uygulamaGoster(user);
+  })();
+</script>
+</body>
+</html>
